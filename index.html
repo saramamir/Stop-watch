@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Timer Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060615;
+  --card:#0f1220;
+  --text:#eaf4ff;
+  --neon:#06b6d4;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;font-family:Inter,Poppins,sans-serif;color:var(--text);background:var(--bg);}
+.wrap{max-width:1400px;margin:20px auto;padding:20px;}
+.panel{background:rgba(255,255,255,0.03);backdrop-filter:blur(6px);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,23,0.6);margin-bottom:24px;}
+h1{font-family:Poppins,Inter;margin:0;font-size:28px;letter-spacing:1.5px;background:linear-gradient(90deg,var(--neon),var(--neon));-webkit-background-clip:text;color:transparent;text-align:center;margin-bottom:12px;}
+.display{display:flex;flex-direction:column;align-items:center;padding:18px;border-radius:12px;margin-top:12px;}
+.time{font-size:50px;font-weight:700;font-family:monospace;text-shadow:0 0 10px rgba(6,182,212,0.14);}
+.controls{display:flex;gap:12px;justify-content:center;margin-top:14px;}
+.btn{border:0;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;}
+.primary{background:linear-gradient(90deg,var(--neon),var(--neon));color:#031017;}
+.secondary{background:linear-gradient(90deg,var(--neon),var(--neon));color:#031017;}
+.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--text);}
+.laps{margin-top:14px;max-height:200px;overflow:auto;border-radius:10px;padding:6px;}
+.lap{display:flex;justify-content:space-between;padding:6px;border-bottom:1px dashed rgba(255,255,255,0.03);}
+.clock{width:160px;height:160px;border:3px solid #ffffff;border-radius:50%;position:relative;margin:16px auto;background:#0a0f1d;}
+.hand{position:absolute;left:50%;top:50%;transform-origin:bottom;width:2px;background:#ffffff;}
+.hand.hour{height:40px;width:4px;}
+.hand.min{height:50px;width:3px;}
+.hand.sec{height:60px;width:2px;}
+.center{position:absolute;left:50%;top:50%;width:10px;height:10px;background:#ffffff;border-radius:50%;transform:translate(-50%,-50%);}
+.number{position:absolute;left:50%;top:50%;transform-origin:center;transform:translate(-50%,-50%);font-weight:700;color:#ffffff;transition:text-shadow 0.2s;}
+.label{margin-top:6px;font-weight:700;text-align:center;}
+input,select,textarea{padding:6px;border-radius:6px;border:none;margin:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- STOPWATCH -->
+<div class="panel">
+<h1>STOPWATCH</h1>
+<div class="display">
+<div id="swTime" class="time">00:00:00.000</div>
+<div class="clock" id="swClock">
+  <div class="hand hour" id="swHour"></div>
+  <div class="hand min" id="swMin"></div>
+  <div class="hand sec" id="swSec"></div>
+  <div class="center"></div>
+</div>
+<div class="controls">
+<button id="swStartStop" class="btn primary">Start</button>
+<button id="swLap" class="btn secondary" disabled>Lap</button>
+<button id="swReset" class="btn ghost" disabled>Reset</button>
+<button id="swClear" class="btn ghost">Clear Laps</button>
+</div>
+<div id="swLaps" class="laps"></div>
+</div>
+</div>
+
+<!-- COUNTDOWN TIMER -->
+<div class="panel">
+<h1>COUNTDOWN TIMER</h1>
+<div class="display">
+<input type="number" id="cdHours" placeholder="HH" min="0" style="width:50px;">
+<input type="number" id="cdMinutes" placeholder="MM" min="0" style="width:50px;">
+<input type="number" id="cdSeconds" placeholder="SS" min="0" style="width:50px;">
+<div id="cdDisplay" class="time">00:00:00</div>
+<div class="controls">
+<button id="cdStart" class="btn primary">Start</button>
+<button id="cdPause" class="btn secondary">Pause</button>
+<button id="cdReset" class="btn ghost">Reset</button>
+</div>
+</div>
+</div>
+
+<!-- INTERVAL TIMER -->
+<div class="panel">
+<h1>INTERVAL TIMER</h1>
+<div class="display">
+Work:<input type="number" id="itWork" value="30" style="width:50px;">s
+Rest:<input type="number" id="itRest" value="15" style="width:50px;">s
+Cycles:<input type="number" id="itCycles" value="3" style="width:50px;">
+<div id="itDisplay" class="time">00:00 - Work</div>
+<div class="controls">
+<button id="itStart" class="btn primary">Start</button>
+<button id="itPause" class="btn secondary">Pause</button>
+<button id="itReset" class="btn ghost">Reset</button>
+</div>
+</div>
+</div>
+
+<!-- ROUTINE TIMER -->
+<div class="panel">
+<h1>ROUTINE TIMER</h1>
+<div class="display">
+<textarea id="rtSteps" rows="3" placeholder="Enter seconds per step, one per line"></textarea>
+<div id="rtDisplay" class="time">00:00 Step 0/0</div>
+<div class="controls">
+<button id="rtStart" class="btn primary">Start</button>
+<button id="rtPause" class="btn secondary">Pause</button>
+<button id="rtReset" class="btn ghost">Reset</button>
+</div>
+</div>
+</div>
+
+<!-- DIGITAL TIMER -->
+<div class="panel">
+<h1>DIGITAL TIMER</h1>
+<div class="display">
+<div id="dtDisplay" class="time">00:00:00.000</div>
+<div class="controls">
+<button id="dtStartStop" class="btn primary">Start</button>
+<button id="dtReset" class="btn ghost">Reset</button>
+</div>
+</div>
+</div>
+
+<!-- ALARM CLOCK -->
+<div class="panel">
+<h1>ALARM CLOCK</h1>
+<div class="display">
+<input type="time" id="alarmTime">
+<div id="alarmStatus" style="margin:6px 0;">No Alarm Set</div>
+<div class="controls">
+<button id="alarmSet" class="btn primary">Set Alarm</button>
+<button id="alarmClear" class="btn ghost">Clear Alarm</button>
+</div>
+</div>
+</div>
+
+<!-- METRONOME -->
+<div class="panel">
+<h1>METRONOME</h1>
+<div class="display">
+BPM: <input type="number" id="metroBPM" value="60" style="width:60px;">
+<div id="metroDisplay" class="time" style="font-size:30px;">•</div>
+<div class="controls">
+<button id="metroStart" class="btn primary">Start</button>
+<button id="metroStop" class="btn ghost">Stop</button>
+</div>
+</div>
+</div>
+
+<!-- WORLD CLOCKS -->
+<div class="panel">
+<h1>WORLD CLOCKS</h1>
+<div id="clocksRow" style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;"></div>
+</div>
+
+<!-- ADSENSE -->
+<div class="panel">
+<h1>ADSENSE</h1>
+<div style="text-align:center;">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1080375588508707" crossorigin="anonymous"></script>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1080375588508707" data-ad-slot="8374491685" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</div>
+
+</div>
+
+<script>
+// ------------------- STOPWATCH -------------------
+(function(){
+const display=document.getElementById('swTime');
+const startStop=document.getElementById('swStartStop');
+const lapBtn=document.getElementById('swLap');
+const resetBtn=document.getElementById('swReset');
+const clearBtn=document.getElementById('swClear');
+const lapsEl=document.getElementById('swLaps');
+const hourHand=document.getElementById('swHour');
+const minHand=document.getElementById('swMin');
+const secHand=document.getElementById('swSec');
+let running=false,start=0,elapsed=0,raf=0,lapTimes=[];
+function fmt(ms){const h=Math.floor(ms/3600000);const m=Math.floor(ms%3600000/60000);const s=Math.floor(ms%60000/1000);const msr=ms%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(msr).padStart(3,'0')}`;}
+function loop(){const now=performance.now();const total=elapsed+(running?(now-start):0);display.textContent=fmt(Math.floor(total));const t=total/1000;hourHand.style.transform=`translate(-50%,-100%) rotate(${Math.floor(t/3600)%12*30 + Math.floor(t/60)%60/2}deg)`;minHand.style.transform=`translate(-50%,-100%) rotate(${Math.floor(t/60)%60*6}deg)`;secHand.style.transform=`translate(-50%,-100%) rotate(${Math.floor(t)%60*6}deg)`;raf=requestAnimationFrame(loop);}
+startStop.addEventListener('click',()=>{if(!running){running=true;start=performance.now();startStop.textContent='Stop';lapBtn.disabled=false;resetBtn.disabled=false;loop();}else{running=false;elapsed+=performance.now()-start;startStop.textContent='Start';cancelAnimationFrame(raf);}});
+lapBtn.addEventListener('click',()=>{const nowTotal=elapsed+(running?(performance.now()-start):0);lapTimes.unshift(nowTotal);renderLaps();});
+resetBtn.addEventListener('click',()=>{running=false;start=0;elapsed=0;lapTimes=[];display.textContent='00:00:00.000';startStop.textContent='Start';lapBtn.disabled=true;resetBtn.disabled=true;lapsEl.innerHTML='';hourHand.style.transform='translate(-50%,-100%) rotate(0deg)';minHand.style.transform='translate(-50%,-100%) rotate(0deg)';secHand.style.transform='translate(-50%,-100%) rotate(0deg)';cancelAnimationFrame(raf);});
+clearBtn.addEventListener('click',()=>{lapTimes=[];lapsEl.innerHTML='';});
+function renderLaps(){lapsEl.innerHTML='';lapTimes.forEach((t,i)=>{const el=document.createElement('div');el.className='lap';el.innerHTML=`<div>Lap ${lapTimes.length-i}</div><div>${fmt(Math.floor(t))}</div>`;lapsEl.appendChild(el);});}
+})();
+
+// ------------------- Countdown Timer -------------------
+(function(){
+const hInp=document.getElementById('cdHours');
+const mInp=document.getElementById('cdMinutes');
+const sInp=document.getElementById('cdSeconds');
+const display=document.getElementById('cdDisplay');
+const startBtn=document.getElementById('cdStart');
+const pauseBtn=document.getElementById('cdPause');
+const resetBtn=document.getElementById('cdReset');
+let total=0,remaining=0,running=false,interval=null;
+function updateDisplay(){const h=Math.floor(remaining/3600);const m=Math.floor((remaining%3600)/60);const s=remaining%60;display.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+startBtn.addEventListener('click',()=>{if(!running){total=Number(hInp.value||0)*3600+Number(mInp.value||0)*60+Number(sInp.value||0);remaining=total;if(remaining<=0)return;running=true;interval=setInterval(()=>{remaining--;updateDisplay();if(remaining<=0){clearInterval(interval);running=false;alert('Countdown Complete');}},1000);}});
+pauseBtn.addEventListener('click',()=>{running=!running;if(!running)clearInterval(interval);else interval=setInterval(()=>{remaining--;updateDisplay();if(remaining<=0){clearInterval(interval);running=false;alert('Countdown Complete');}},1000);});
+resetBtn.addEventListener('click',()=>{running=false;clearInterval(interval);remaining=0;updateDisplay();});
+updateDisplay();
+})();
+
+// ------------------- WORLD CLOCKS -------------------
+(function(){
+const clocksRow=document.getElementById('clocksRow');
+const configs=[{name:'USA',tz:'America/New_York',flag:'🇺🇸'},{name:'UK',tz:'Europe/London',flag:'🇬🇧'},{name:'Canada',tz:'America/Toronto',flag:'🇨🇦'},{name:'Japan',tz:'Asia/Tokyo',flag:'🇯🇵'},{name:'Australia',tz:'Australia/Sydney',flag:'🇦🇺'}];
+function makeClock(cfg){const wrap=document.createElement('div');wrap.className='clock-wrap';const clock=document.createElement('div');clock.className='clock';clock.style.width='160px';clock.style.height='160px';clock.style.border='3px solid #ffffff';clock.style.background='#0a0f1d';const hour=document.createElement('div');hour.className='hand hour';const min=document.createElement('div');min.className='hand min';const sec=document.createElement('div');sec.className='hand sec';const center=document.createElement('div');center.className='center';clock.append(hour,min,sec,center);for(let i=1;i<=12;i++){const num=document.createElement('div');num.className='number';num.textContent=i;const angle=(i/12)*360;num.style.transform=`translate(-50%,-50%) rotate(${angle}deg) translate(0,-60px) rotate(-${angle}deg)`;num.style.color='#ffffff';clock.appendChild(num);}wrap.append(clock);const label=document.createElement('div');label.className='label';label.textContent=`${cfg.flag} ${cfg.name}`;wrap.append(label);clocksRow.appendChild(wrap);return {hour,min,sec,wrap,cfg};}
+const items=configs.map(makeClock);
+function tzPartsFor(tz){const now=new Date();try{const parts=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'numeric',second:'numeric',hour12:false,timeZone:tz}).formatToParts(now);return {hour:Number(parts.find(p=>p.type==='hour').value),minute:Number(parts.find(p=>p.type==='minute').value),second:Number(parts.find(p=>p.type==='second').value)};}catch(e){return null;}}
+function update(){items.forEach(it=>{const p=tzPartsFor(it.cfg.tz);if(!p)return;const hourAngle=(p.hour%12)*30+(p.minute/60)*30;const minAngle=p.minute*6+(p.second/60)*6;const secAngle=p.second*6;it.hour.style.transform=`translate(-50%,-100%) rotate(${hourAngle}deg)`;it.min.style.transform=`translate(-50%,-100%) rotate(${minAngle}deg)`;it.sec.style.transform=`translate(-50%,-100%) rotate(${secAngle}deg)`;const nums=it.wrap.querySelectorAll('.number');nums.forEach((num,i)=>{const numAngle=((i+1)/12)*360;const diff=Math.abs(numAngle-secAngle%360);num.style.textShadow=(diff<6)?'0 0 8px cyan':'none';});});}
+setInterval(update,250); update();
+})();
+</script>
+</body>
+</html>
